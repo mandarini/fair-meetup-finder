@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { PointsList } from './PointsList';
 import { CenterResults } from './CenterResults';
-import { MapPoint, CenterPoint } from '@/types/map';
-import { MousePointer2, Target, Trash2, MapPin } from 'lucide-react';
+import { MapPoint, CenterPoint, TravelMode } from '@/types/map';
+import { MousePointer2, Target, Trash2, MapPin, Car, PersonStanding, Train } from 'lucide-react';
 
 interface ControlPanelProps {
   points: MapPoint[];
@@ -13,11 +15,13 @@ interface ControlPanelProps {
   isAddingPoint: boolean;
   isCalculating: boolean;
   isGoogleLoaded: boolean;
+  travelMode: TravelMode;
   onToggleAddPoint: () => void;
   onAddressSelect: (lat: number, lng: number, address: string) => void;
   onRemovePoint: (id: string) => void;
   onClearAll: () => void;
   onCalculate: () => void;
+  onTravelModeChange: (mode: TravelMode) => void;
 }
 
 export function ControlPanel({
@@ -26,11 +30,13 @@ export function ControlPanel({
   isAddingPoint,
   isCalculating,
   isGoogleLoaded,
+  travelMode,
   onToggleAddPoint,
   onAddressSelect,
   onRemovePoint,
   onClearAll,
   onCalculate,
+  onTravelModeChange,
 }: ControlPanelProps) {
   return (
     <div className="flex flex-col h-full bg-card">
@@ -104,6 +110,47 @@ export function ControlPanel({
       {/* Results & Calculate */}
       <div className="p-4 border-t border-border space-y-4">
         {centerPoint && <CenterResults centerPoint={centerPoint} />}
+
+        {/* Travel Mode Selector */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-foreground">Travel Mode</Label>
+          <RadioGroup
+            value={travelMode}
+            onValueChange={(value) => onTravelModeChange(value as TravelMode)}
+            className="grid grid-cols-3 gap-2"
+          >
+            <div>
+              <RadioGroupItem value="WALKING" id="walking" className="peer sr-only" />
+              <Label
+                htmlFor="walking"
+                className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-background p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/10 cursor-pointer transition-all"
+              >
+                <PersonStanding className="h-5 w-5" />
+                <span className="text-xs font-medium">Walk</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="TRANSIT" id="transit" className="peer sr-only" />
+              <Label
+                htmlFor="transit"
+                className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-background p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/10 cursor-pointer transition-all"
+              >
+                <Train className="h-5 w-5" />
+                <span className="text-xs font-medium">Transit</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="DRIVING" id="driving" className="peer sr-only" />
+              <Label
+                htmlFor="driving"
+                className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-background p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/10 cursor-pointer transition-all"
+              >
+                <Car className="h-5 w-5" />
+                <span className="text-xs font-medium">Drive</span>
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
 
         <Button
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-accent-glow transition-all disabled:opacity-50 disabled:shadow-none"

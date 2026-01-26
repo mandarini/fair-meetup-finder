@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { MapPoint, CenterPoint } from '@/types/map';
-import { calculateMinimaxCenter, haversineDistance } from '@/lib/geometricMedian';
+import { MapPoint, CenterPoint, TravelMode } from '@/types/map';
+import { calculateGeometricMedian, haversineDistance } from '@/lib/geometricMedian';
+import { calculateRoutesToPoint } from '@/lib/routeCalculator';
 
 export function useMapPoints() {
   const [points, setPoints] = useState<MapPoint[]>([]);
@@ -42,31 +43,63 @@ export function useMapPoints() {
     setCenterPoint(null);
   }, []);
 
-  const calculateCenter = useCallback(() => {
+  const calculateCenter = useCallback(async (travelMode?: TravelMode) => {
     if (points.length < 2) return;
 
     setIsCalculating(true);
 
-    // Simulate async for UX
-    setTimeout(() => {
-      const center = calculateMinimaxCenter(points);
+    try {
+      // First, find geometric median as candidate center
+      const center = calculateGeometricMedian(points);
 
-      const distances = points.map((point) => ({
-        pointId: point.id,
-        distance: haversineDistance(center, point),
-      }));
+      if (travelMode) {
+        // Calculate actual routes using Google Directions API
+        const routes = await calculateRoutesToPoint(
+          points.map(p => ({ lat: p.lat, lng: p.lng })),
+          { lat: center.lat, lng: center.lng },
+          travelMode
+        );
 
-      const totalDistance = distances.reduce((sum, d) => sum + d.distance, 0);
+        const distances = points.map((point, index) => {
+          const route = routes[index];
+          return {
+            pointId: point.id,
+            distance: route?.distance || haversineDistance(center, point),
+            duration: route?.duration,
+          };
+        });
 
-      setCenterPoint({
-        lat: center.lat,
-        lng: center.lng,
-        distances,
-        totalDistance,
-      });
+        const totalDistance = distances.reduce((sum, d) => sum + d.distance, 0);
+        const totalDuration = distances.reduce((sum, d) => sum + (d.duration || 0), 0);
 
+        setCenterPoint({
+          lat: center.lat,
+          lng: center.lng,
+          distances,
+          totalDistance,
+          totalDuration,
+        });
+      } else {
+        // Fallback to straight-line distance
+        const distances = points.map((point) => ({
+          pointId: point.id,
+          distance: haversineDistance(center, point),
+        }));
+
+        const totalDistance = distances.reduce((sum, d) => sum + d.distance, 0);
+
+        setCenterPoint({
+          lat: center.lat,
+          lng: center.lng,
+          distances,
+          totalDistance,
+        });
+      }
+    } catch (error) {
+      console.error('Error calculating center:', error);
+    } finally {
       setIsCalculating(false);
-    }, 300);
+    }
   }, [points]);
 
   return {

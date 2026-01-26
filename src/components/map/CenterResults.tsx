@@ -8,6 +8,16 @@ interface CenterResultsProps {
 }
 
 export function CenterResults({ centerPoint }: CenterResultsProps) {
+  const formatDuration = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -20,7 +30,9 @@ export function CenterResults({ centerPoint }: CenterResultsProps) {
         </div>
         <div>
           <h3 className="font-display font-semibold text-foreground">Meeting Point Found</h3>
-          <p className="text-xs text-muted-foreground">Fair center - minimizes max distance</p>
+          <p className="text-xs text-muted-foreground">
+            {centerPoint.totalDuration ? 'Minimizes travel time' : 'Geometric median location'}
+          </p>
         </div>
       </div>
 
@@ -31,8 +43,16 @@ export function CenterResults({ centerPoint }: CenterResultsProps) {
             {centerPoint.lat.toFixed(6)}, {centerPoint.lng.toFixed(6)}
           </span>
         </div>
-        
-        <div className="pt-2 border-t border-accent/20">
+
+        <div className="pt-2 border-t border-accent/20 space-y-2">
+          {centerPoint.totalDuration !== undefined && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total travel time</span>
+              <span className="font-semibold text-accent">
+                {formatDuration(centerPoint.totalDuration)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Total distance</span>
             <span className="font-semibold text-accent">

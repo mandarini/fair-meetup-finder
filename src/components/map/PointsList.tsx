@@ -11,8 +11,22 @@ interface PointsListProps {
 }
 
 export function PointsList({ points, centerPoint, onRemovePoint }: PointsListProps) {
-  const getDistanceForPoint = (pointId: string): number | undefined => {
-    return centerPoint?.distances.find((d) => d.pointId === pointId)?.distance;
+  const getDistanceForPoint = (pointId: string) => {
+    const info = centerPoint?.distances.find((d) => d.pointId === pointId);
+    return {
+      distance: info?.distance,
+      duration: info?.duration,
+    };
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
   };
 
   if (points.length === 0) {
@@ -28,8 +42,8 @@ export function PointsList({ points, centerPoint, onRemovePoint }: PointsListPro
     <div className="space-y-2">
       <AnimatePresence mode="popLayout">
         {points.map((point, index) => {
-          const distance = getDistanceForPoint(point.id);
-          
+          const { distance, duration } = getDistanceForPoint(point.id);
+
           return (
             <motion.div
               key={point.id}
@@ -45,7 +59,7 @@ export function PointsList({ points, centerPoint, onRemovePoint }: PointsListPro
                   {index + 1}
                 </div>
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm text-foreground truncate">
                   {point.label}
@@ -64,9 +78,20 @@ export function PointsList({ points, centerPoint, onRemovePoint }: PointsListPro
 
               {distance !== undefined && (
                 <div className="text-right shrink-0">
-                  <span className="text-xs font-medium text-accent">
-                    {formatDistance(distance)}
-                  </span>
+                  {duration !== undefined ? (
+                    <>
+                      <p className="text-xs font-medium text-accent">
+                        {formatDuration(duration)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistance(distance)}
+                      </p>
+                    </>
+                  ) : (
+                    <span className="text-xs font-medium text-accent">
+                      {formatDistance(distance)}
+                    </span>
+                  )}
                 </div>
               )}
 

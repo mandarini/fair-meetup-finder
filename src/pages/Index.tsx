@@ -3,10 +3,12 @@ import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { ControlPanel } from '@/components/map/ControlPanel';
 import { MapContainer } from '@/components/map/MapContainer';
 import { useMapPoints } from '@/hooks/useMapPoints';
+import { TravelMode } from '@/types/map';
 
 const Index = () => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
   const [isAddingPoint, setIsAddingPoint] = useState(false);
+  const [travelMode, setTravelMode] = useState<TravelMode>('WALKING');
 
   const { isLoaded, loadError } = useGoogleMaps(apiKey);
 
@@ -59,11 +61,13 @@ const Index = () => {
           isAddingPoint={isAddingPoint}
           isCalculating={isCalculating}
           isGoogleLoaded={isLoaded}
+          travelMode={travelMode}
           onToggleAddPoint={() => setIsAddingPoint(!isAddingPoint)}
           onAddressSelect={handleAddressSelect}
           onRemovePoint={removePoint}
           onClearAll={clearAll}
-          onCalculate={calculateCenter}
+          onCalculate={() => calculateCenter(travelMode)}
+          onTravelModeChange={setTravelMode}
         />
       </div>
 

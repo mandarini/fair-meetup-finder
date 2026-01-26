@@ -9,6 +9,13 @@ export interface MapPoint {
 export interface CenterPoint {
   lat: number;
   lng: number;
-  distances: { pointId: string; distance: number }[];
+  distances: Array<{
+    pointId: string;
+    distance: number;
+    duration?: number; // Travel time in seconds
+  }>;
   totalDistance: number;
+  totalDuration?: number; // Total travel time in seconds
 }
+
+export type TravelMode = 'DRIVING' | 'WALKING' | 'TRANSIT';
