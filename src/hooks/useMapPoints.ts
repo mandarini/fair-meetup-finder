@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { MapPoint, CenterPoint } from '@/types/map';
-import { calculateGeometricMedian, haversineDistance } from '@/lib/geometricMedian';
+import { calculateMinimaxCenter, haversineDistance } from '@/lib/geometricMedian';
 
 export function useMapPoints() {
   const [points, setPoints] = useState<MapPoint[]>([]);
@@ -49,18 +49,18 @@ export function useMapPoints() {
 
     // Simulate async for UX
     setTimeout(() => {
-      const median = calculateGeometricMedian(points);
+      const center = calculateMinimaxCenter(points);
 
       const distances = points.map((point) => ({
         pointId: point.id,
-        distance: haversineDistance(median, point),
+        distance: haversineDistance(center, point),
       }));
 
       const totalDistance = distances.reduce((sum, d) => sum + d.distance, 0);
 
       setCenterPoint({
-        lat: median.lat,
-        lng: median.lng,
+        lat: center.lat,
+        lng: center.lng,
         distances,
         totalDistance,
       });

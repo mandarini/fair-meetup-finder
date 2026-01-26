@@ -77,7 +77,7 @@ export function calculateGeometricMedian(
 
     for (const point of points) {
       const distance = haversineDistance(median, point);
-      
+
       // Avoid division by zero
       if (distance < 0.001) continue;
 
@@ -110,6 +110,83 @@ export function calculateGeometricMedian(
   }
 
   return median;
+}
+
+/**
+ * Calculate the minimax center (1-center problem)
+ * This minimizes the maximum distance anyone has to travel
+ * This is the "fairest" algorithm - finds center of smallest enclosing circle
+ */
+export function calculateMinimaxCenter(
+  points: LatLng[],
+  maxIterations: number = 1000,
+  tolerance: number = 0.00001 // ~1 meter
+): LatLng {
+  if (points.length === 0) {
+    return { lat: 0, lng: 0 };
+  }
+
+  if (points.length === 1) {
+    return { ...points[0] };
+  }
+
+  if (points.length === 2) {
+    return {
+      lat: (points[0].lat + points[1].lat) / 2,
+      lng: (points[0].lng + points[1].lng) / 2,
+    };
+  }
+
+  // Start with centroid
+  let center = calculateCentroid(points);
+  const stepSize = 0.5; // Adjust step size for convergence
+
+  for (let iter = 0; iter < maxIterations; iter++) {
+    // Find the farthest point from current center
+    let maxDist = 0;
+    let farthestPoint: LatLng | null = null;
+
+    for (const point of points) {
+      const dist = haversineDistance(center, point);
+      if (dist > maxDist) {
+        maxDist = dist;
+        farthestPoint = point;
+      }
+    }
+
+    if (!farthestPoint || maxDist < tolerance) {
+      break;
+    }
+
+    // Move center toward the farthest point to balance distances
+    // Use adaptive step size that decreases over iterations
+    const adaptiveStep = stepSize / Math.sqrt(iter + 1);
+    const moveFraction = adaptiveStep * 0.1; // Small movements
+
+    const newCenter = {
+      lat: center.lat + (farthestPoint.lat - center.lat) * moveFraction,
+      lng: center.lng + (farthestPoint.lng - center.lng) * moveFraction,
+    };
+
+    // Check if this actually improves the maximum distance
+    let newMaxDist = 0;
+    for (const point of points) {
+      const dist = haversineDistance(newCenter, point);
+      if (dist > newMaxDist) {
+        newMaxDist = dist;
+      }
+    }
+
+    // Only accept the move if it reduces the maximum distance
+    if (newMaxDist < maxDist - tolerance) {
+      center = newCenter;
+    } else {
+      // If we can't improve, we've converged
+      break;
+    }
+  }
+
+  return center;
 }
 
 /**

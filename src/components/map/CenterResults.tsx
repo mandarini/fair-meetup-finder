@@ -20,7 +20,7 @@ export function CenterResults({ centerPoint }: CenterResultsProps) {
         </div>
         <div>
           <h3 className="font-display font-semibold text-foreground">Meeting Point Found</h3>
-          <p className="text-xs text-muted-foreground">Geometric median location</p>
+          <p className="text-xs text-muted-foreground">Fair center - minimizes max distance</p>
         </div>
       </div>
 

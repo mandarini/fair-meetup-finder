@@ -63,7 +63,7 @@ export function MapContainer({
     if (!mapDivRef.current || mapRef.current) return;
 
     const map = new google.maps.Map(mapDivRef.current, {
-      center: userLocation || { lat: 40.7128, lng: -74.0060 },
+      center: userLocation || { lat: 37.9838, lng: 23.7275 }, // Athens, Greece
       zoom: 12,
       disableDefaultUI: false,
       zoomControl: true,
