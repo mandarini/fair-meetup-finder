@@ -15,12 +15,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// Default demo key - users should replace with their own
-const DEFAULT_API_KEY = '';
-
 const Index = () => {
   const [apiKey, setApiKey] = useState(() => {
-    return localStorage.getItem('googleMapsApiKey') || DEFAULT_API_KEY;
+    // Priority: Environment variable > localStorage > empty string
+    return import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
+           localStorage.getItem('googleMapsApiKey') ||
+           '';
   });
   const [tempApiKey, setTempApiKey] = useState(apiKey);
   const [isAddingPoint, setIsAddingPoint] = useState(false);
@@ -86,7 +86,7 @@ const Index = () => {
               <DialogHeader>
                 <DialogTitle className="font-display">Google Maps API Key</DialogTitle>
                 <DialogDescription>
-                  Enter your Google Maps API key to enable the map. You need Places API and Maps JavaScript API enabled.
+                  Enter your Google Maps API key or add it to your .env file as VITE_GOOGLE_MAPS_API_KEY. Required APIs: Maps JavaScript API, Places API, and Geometry Library.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">

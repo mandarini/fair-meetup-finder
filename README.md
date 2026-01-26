@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# MeetPoint - Fair Meeting Location Finder
+
+Find the perfect meeting point that's fair for everyone based on distance or travel time.
 
 ## Project info
 
@@ -32,9 +34,36 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Set up your Google Maps API key
+cp .env.example .env
+# Then edit .env and add your API key
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+## Google Maps API Setup
+
+This project requires a Google Maps Platform API key with the following APIs enabled:
+
+1. **Maps JavaScript API**
+2. **Places API**
+3. **Geometry Library**
+4. **Distance Matrix API** (for Phase 2 - travel time mode)
+5. **Directions API** (for Phase 2 - route visualization)
+
+### Getting Your API Key
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create a new project or select an existing one
+3. Enable the required APIs listed above
+4. Create credentials (API Key)
+5. Add the API key to your `.env` file:
+   ```
+   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
+
+Alternatively, you can enter the API key through the app's settings dialog when you first run it.
 
 **Edit a file directly in GitHub**
 
