@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useJsApiLoader } from '@react-google-maps/api';
 import { ControlPanel } from '@/components/map/ControlPanel';
 import { MapContainer } from '@/components/map/MapContainer';
 import { useMapPoints } from '@/hooks/useMapPoints';
@@ -16,8 +15,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const libraries: ("places" | "geometry")[] = ["places", "geometry"];
-
 // Default demo key - users should replace with their own
 const DEFAULT_API_KEY = '';
 
@@ -28,11 +25,6 @@ const Index = () => {
   const [tempApiKey, setTempApiKey] = useState(apiKey);
   const [isAddingPoint, setIsAddingPoint] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(!apiKey);
-
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: apiKey,
-    libraries,
-  });
 
   const {
     points,
@@ -73,7 +65,7 @@ const Index = () => {
           centerPoint={centerPoint}
           isAddingPoint={isAddingPoint}
           isCalculating={isCalculating}
-          isGoogleLoaded={isLoaded}
+          isGoogleLoaded={!!apiKey}
           onToggleAddPoint={() => setIsAddingPoint(!isAddingPoint)}
           onAddressSelect={handleAddressSelect}
           onRemovePoint={removePoint}
