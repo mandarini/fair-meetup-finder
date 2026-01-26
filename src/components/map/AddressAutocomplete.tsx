@@ -13,7 +13,7 @@ export function AddressAutocomplete({ onPlaceSelect, isLoaded }: AddressAutocomp
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
-    if (!isLoaded || !inputRef.current) return;
+    if (!isLoaded || !inputRef.current || !window.google?.maps?.places) return;
 
     autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
       types: ['geocode', 'establishment'],

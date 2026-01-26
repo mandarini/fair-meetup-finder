@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { ControlPanel } from '@/components/map/ControlPanel';
 import { MapContainer } from '@/components/map/MapContainer';
 import { useMapPoints } from '@/hooks/useMapPoints';
@@ -6,6 +7,8 @@ import { useMapPoints } from '@/hooks/useMapPoints';
 const Index = () => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
   const [isAddingPoint, setIsAddingPoint] = useState(false);
+
+  const { isLoaded, loadError } = useGoogleMaps(apiKey);
 
   const {
     points,
@@ -27,6 +30,25 @@ const Index = () => {
     addPoint(lat, lng, address);
   };
 
+  if (loadError) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="text-center p-8">
+          <p className="text-destructive font-medium text-lg">Failed to load Google Maps</p>
+          <p className="text-muted-foreground text-sm mt-2">Please check your API key in .env file</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading Google Maps...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen w-full bg-background">
       {/* Control Panel */}
@@ -36,7 +58,7 @@ const Index = () => {
           centerPoint={centerPoint}
           isAddingPoint={isAddingPoint}
           isCalculating={isCalculating}
-          isGoogleLoaded={!!apiKey}
+          isGoogleLoaded={isLoaded}
           onToggleAddPoint={() => setIsAddingPoint(!isAddingPoint)}
           onAddressSelect={handleAddressSelect}
           onRemovePoint={removePoint}
@@ -53,7 +75,6 @@ const Index = () => {
           isAddingPoint={isAddingPoint}
           onMapClick={handleMapClick}
           onMarkerDrag={updatePoint}
-          apiKey={apiKey}
         />
 
         {/* Adding Point Indicator */}
