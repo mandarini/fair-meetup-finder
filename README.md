@@ -1,102 +1,125 @@
-# MeetPoint - Fair Meeting Location Finder
+# FairMeet
 
-Find the perfect meeting point that's fair for everyone based on distance or travel time.
+Find the fairest meeting point for a group of people based on real travel time and distance.
 
-## Project info
+## Features
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+- **Fair meeting point** -- calculates the optimal location that minimizes travel for everyone
+- **Two algorithms** -- "Fair Total" (geometric median, minimizes total distance) and "Fair Max" (minimax, minimizes the longest individual trip)
+- **Real travel times** -- uses Google Directions API for walking, transit, or driving routes
+- **Venue suggestions** -- find the nearest cafe, restaurant, or bar to the meeting point
+- **Google Maps links** -- open the meeting point or suggested venue directly in Google Maps
+- **Friends list** -- save your friends' locations and quickly add them to a meetup (requires sign-in)
+- **Google sign-in** -- authentication via Supabase with Google OAuth
+- **Address search** -- autocomplete powered by Google Places
+- **Drag & drop markers** -- fine-tune locations by dragging pins on the map
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+- [React](https://react.dev) + [TypeScript](https://www.typescriptlang.org) + [Vite](https://vite.dev)
+- [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)
+- [Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript) (Maps, Places, Directions)
+- [Supabase](https://supabase.com) (Auth + PostgreSQL)
+- [TanStack React Query](https://tanstack.com/query)
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js 18+
+- A Google Cloud project with these APIs enabled:
+  - Maps JavaScript API
+  - Places API
+  - Directions API
+- A Supabase project (free tier works)
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### 1. Clone and install
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/mandarini/fair-meetup-finder.git
+cd fair-meetup-finder
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 2. Set up environment variables
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Set up your Google Maps API key
+```sh
 cp .env.example .env
-# Then edit .env and add your API key
+```
 
-# Step 5: Start the development server with auto-reloading and an instant preview.
+Edit `.env` and add your keys:
+
+```
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Set up Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the migration in `supabase/migration.sql` (or use the SQL Editor in the Supabase Dashboard)
+3. Enable **Google** as an auth provider in Authentication > Providers
+4. Add your app's callback URLs in Authentication > URL Configuration:
+   - `http://localhost:5173/auth/callback` (development)
+   - `https://your-domain.com/auth/callback` (production)
+
+### 4. Set up Google OAuth
+
+1. Go to [Google Cloud Console > Credentials](https://console.cloud.google.com/apis/credentials)
+2. Create an OAuth 2.0 Client ID (Web application)
+3. Add authorized JavaScript origins: your app URL + `http://localhost:5173`
+4. Add authorized redirect URI: `https://<your-supabase-project>.supabase.co/auth/v1/callback`
+5. Copy Client ID + Secret into Supabase Dashboard > Auth > Providers > Google
+
+### 5. Run
+
+```sh
 npm run dev
 ```
 
-## Google Maps API Setup
+Open [http://localhost:5173](http://localhost:5173).
 
-This project requires a Google Maps Platform API key with the following APIs enabled:
+## Deploying to Netlify
 
-1. **Maps JavaScript API**
-2. **Places API**
-3. **Geometry Library**
-4. **Distance Matrix API** (for Phase 2 - travel time mode)
-5. **Directions API** (for Phase 2 - route visualization)
+Set these environment variables in Netlify > Site settings > Environment variables:
 
-### Getting Your API Key
+| Variable | Value |
+|----------|-------|
+| `VITE_GOOGLE_MAPS_API_KEY` | Your Google Maps API key |
+| `VITE_SUPABASE_URL` | `https://your-project.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon/publishable key |
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
-2. Create a new project or select an existing one
-3. Enable the required APIs listed above
-4. Create credentials (API Key)
-5. Add the API key to your `.env` file:
-   ```
-   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
-   ```
+Build command: `npm run build`
+Publish directory: `dist`
 
-Alternatively, you can enter the API key through the app's settings dialog when you first run it.
+## Database Schema
 
-**Edit a file directly in GitHub**
+The app uses these Supabase tables (all protected by Row Level Security):
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **profiles** -- auto-created on sign-up via database trigger
+- **friends** -- saved contacts with name + location
+- **groups** / **group_members** -- organize friends into groups
+- **meetup_history** -- saved meetup calculations with optional shareable links
 
-**Use GitHub Codespaces**
+## How the Algorithms Work
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+**Geometric Median (Fair Total)** -- Uses [Weiszfeld's algorithm](https://en.wikipedia.org/wiki/Geometric_median) to find the point that minimizes the sum of distances to all participants. Best when you want to minimize total group travel.
 
-## What technologies are used for this project?
+**Minimax Center (Fair Max)** -- Finds the point that minimizes the maximum distance any single person has to travel. Best when fairness to the person with the longest commute matters most.
 
-This project is built with:
+Both algorithms use the [Haversine formula](https://en.wikipedia.org/wiki/Haversine_formula) for geographic distance calculations. When a travel mode is selected, the app refines results using actual route data from the Google Directions API.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Scripts
 
-## How can I deploy this project?
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run test` | Run tests |
+| `npm run lint` | Lint with ESLint |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## License
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT
