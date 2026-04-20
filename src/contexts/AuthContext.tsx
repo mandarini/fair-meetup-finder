@@ -36,19 +36,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user.id);
-      }
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
-
-    // Listen for auth changes
+    // onAuthStateChange fires INITIAL_SESSION on setup, then on every change.
+    // This is the recommended single source of truth for session state.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         setSession(newSession);
@@ -58,6 +47,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         } else {
           setProfile(null);
         }
+        setIsLoading(false);
       }
     );
 
