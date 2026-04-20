@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import { MapPoint, CenterPoint, TravelMode } from '@/types/map';
-import { calculateGeometricMedian, haversineDistance } from '@/lib/geometricMedian';
+import { MapPoint, CenterPoint, TravelMode, Algorithm } from '@/types/map';
+import { calculateGeometricMedian, calculateMinimaxCenter, haversineDistance } from '@/lib/geometricMedian';
 import { calculateRoutesToPoint } from '@/lib/routeCalculator';
+import type { Friend } from '@/types/database';
 
 export function useMapPoints() {
   const [points, setPoints] = useState<MapPoint[]>([]);
@@ -19,8 +20,21 @@ export function useMapPoints() {
       address,
     };
     setPoints((prev) => [...prev, newPoint]);
-    setCenterPoint(null); // Reset center when points change
+    setCenterPoint(null);
   }, [points.length]);
+
+  const addFriendAsPoint = useCallback((friend: Friend) => {
+    const newPoint: MapPoint = {
+      id: generateId(),
+      lat: friend.location.lat,
+      lng: friend.location.lng,
+      label: friend.name,
+      address: friend.location.address,
+      friendId: friend.id,
+    };
+    setPoints((prev) => [...prev, newPoint]);
+    setCenterPoint(null);
+  }, []);
 
   const updatePoint = useCallback((id: string, lat: number, lng: number) => {
     setPoints((prev) =>
@@ -32,8 +46,10 @@ export function useMapPoints() {
   const removePoint = useCallback((id: string) => {
     setPoints((prev) => {
       const filtered = prev.filter((p) => p.id !== id);
-      // Re-label remaining points
-      return filtered.map((p, i) => ({ ...p, label: `Person ${i + 1}` }));
+      return filtered.map((p, i) => ({
+        ...p,
+        label: p.friendId ? p.label : `Person ${i + 1}`,
+      }));
     });
     setCenterPoint(null);
   }, []);
@@ -43,17 +59,17 @@ export function useMapPoints() {
     setCenterPoint(null);
   }, []);
 
-  const calculateCenter = useCallback(async (travelMode?: TravelMode) => {
+  const calculateCenter = useCallback(async (travelMode?: TravelMode, algorithm: Algorithm = 'geometric_median') => {
     if (points.length < 2) return;
 
     setIsCalculating(true);
 
     try {
-      // First, find geometric median as candidate center
-      const center = calculateGeometricMedian(points);
+      const center = algorithm === 'minimax'
+        ? calculateMinimaxCenter(points)
+        : calculateGeometricMedian(points);
 
       if (travelMode) {
-        // Calculate actual routes using Google Directions API
         const routes = await calculateRoutesToPoint(
           points.map(p => ({ lat: p.lat, lng: p.lng })),
           { lat: center.lat, lng: center.lng },
@@ -80,7 +96,6 @@ export function useMapPoints() {
           totalDuration,
         });
       } else {
-        // Fallback to straight-line distance
         const distances = points.map((point) => ({
           pointId: point.id,
           distance: haversineDistance(center, point),
@@ -107,6 +122,7 @@ export function useMapPoints() {
     centerPoint,
     isCalculating,
     addPoint,
+    addFriendAsPoint,
     updatePoint,
     removePoint,
     clearAll,

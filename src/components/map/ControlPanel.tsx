@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { PointsList } from './PointsList';
 import { CenterResults } from './CenterResults';
-import { MapPoint, CenterPoint, TravelMode } from '@/types/map';
-import { MousePointer2, Target, Trash2, MapPin, Car, PersonStanding, Train } from 'lucide-react';
+import { FriendPicker } from '@/components/friends/FriendPicker';
+import { MapPoint, CenterPoint, TravelMode, Algorithm } from '@/types/map';
+import type { Friend } from '@/types/database';
+import type { Venue, VenueType } from '@/hooks/useNearbyVenues';
+import { MousePointer2, Target, Trash2, Car, PersonStanding, Train, Scale, Crosshair } from 'lucide-react';
 
 interface ControlPanelProps {
   points: MapPoint[];
@@ -16,12 +17,19 @@ interface ControlPanelProps {
   isCalculating: boolean;
   isGoogleLoaded: boolean;
   travelMode: TravelMode;
+  algorithm: Algorithm;
+  venue?: Venue | null;
+  venueType?: VenueType;
+  isSearchingVenue?: boolean;
   onToggleAddPoint: () => void;
   onAddressSelect: (lat: number, lng: number, address: string) => void;
+  onFriendSelect: (friend: Friend) => void;
   onRemovePoint: (id: string) => void;
   onClearAll: () => void;
   onCalculate: () => void;
   onTravelModeChange: (mode: TravelMode) => void;
+  onAlgorithmChange: (algorithm: Algorithm) => void;
+  onSearchVenue?: (type: VenueType) => void;
 }
 
 export function ControlPanel({
@@ -31,32 +39,35 @@ export function ControlPanel({
   isCalculating,
   isGoogleLoaded,
   travelMode,
+  algorithm,
+  venue,
+  venueType,
+  isSearchingVenue,
   onToggleAddPoint,
   onAddressSelect,
+  onFriendSelect,
   onRemovePoint,
   onClearAll,
   onCalculate,
   onTravelModeChange,
+  onAlgorithmChange,
+  onSearchVenue,
 }: ControlPanelProps) {
+  const selectedFriendIds = points
+    .filter((p) => p.friendId)
+    .map((p) => p.friendId!);
+
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Header */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-xl bg-accent/10">
-            <MapPin className="h-5 w-5 text-accent" />
-          </div>
-          <h1 className="font-display text-xl font-bold text-foreground">
-            MeetPoint
-          </h1>
-        </div>
-        <p className="text-sm text-muted-foreground mt-2">
+      <div className="p-4 border-b border-border">
+        <p className="text-sm text-muted-foreground">
           Find the fair meeting location for everyone
         </p>
       </div>
 
       {/* Controls */}
-      <div className="p-4 border-b border-border space-y-4">
+      <div className="p-4 border-b border-border space-y-3">
         <AddressAutocomplete
           onPlaceSelect={onAddressSelect}
           isLoaded={isGoogleLoaded}
@@ -66,8 +77,8 @@ export function ControlPanel({
           <Button
             variant={isAddingPoint ? "default" : "outline"}
             className={`flex-1 transition-all ${
-              isAddingPoint 
-                ? 'bg-primary text-primary-foreground shadow-md' 
+              isAddingPoint
+                ? 'bg-primary text-primary-foreground shadow-md'
                 : 'hover:bg-secondary'
             }`}
             onClick={onToggleAddPoint}
@@ -87,6 +98,11 @@ export function ControlPanel({
             </Button>
           )}
         </div>
+
+        <FriendPicker
+          onSelectFriend={onFriendSelect}
+          selectedFriendIds={selectedFriendIds}
+        />
       </div>
 
       {/* Points List */}
@@ -99,7 +115,7 @@ export function ControlPanel({
             {points.length} point{points.length !== 1 ? 's' : ''}
           </span>
         </div>
-        
+
         <PointsList
           points={points}
           centerPoint={centerPoint}
@@ -109,7 +125,51 @@ export function ControlPanel({
 
       {/* Results & Calculate */}
       <div className="p-4 border-t border-border space-y-4">
-        {centerPoint && <CenterResults centerPoint={centerPoint} />}
+        {centerPoint && (
+          <CenterResults
+            centerPoint={centerPoint}
+            venue={venue}
+            venueType={venueType}
+            isSearchingVenue={isSearchingVenue}
+            onSearchVenue={onSearchVenue}
+          />
+        )}
+
+        {/* Algorithm Selector */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-foreground">Algorithm</Label>
+          <RadioGroup
+            value={algorithm}
+            onValueChange={(value) => onAlgorithmChange(value as Algorithm)}
+            className="grid grid-cols-2 gap-2"
+          >
+            <div>
+              <RadioGroupItem value="geometric_median" id="algo-gm" className="peer sr-only" />
+              <Label
+                htmlFor="algo-gm"
+                className="flex flex-col items-center justify-center gap-1.5 rounded-md border-2 border-muted bg-background p-2.5 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/10 cursor-pointer transition-all"
+              >
+                <Scale className="h-4 w-4" />
+                <span className="text-xs font-medium">Fair Total</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="minimax" id="algo-mm" className="peer sr-only" />
+              <Label
+                htmlFor="algo-mm"
+                className="flex flex-col items-center justify-center gap-1.5 rounded-md border-2 border-muted bg-background p-2.5 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/10 cursor-pointer transition-all"
+              >
+                <Crosshair className="h-4 w-4" />
+                <span className="text-xs font-medium">Fair Max</span>
+              </Label>
+            </div>
+          </RadioGroup>
+          <p className="text-xs text-muted-foreground">
+            {algorithm === 'geometric_median'
+              ? 'Minimizes total distance for everyone'
+              : 'Minimizes the longest trip for any person'}
+          </p>
+        </div>
 
         {/* Travel Mode Selector */}
         <div className="space-y-2">

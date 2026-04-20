@@ -4,6 +4,7 @@ export interface MapPoint {
   lng: number;
   label: string;
   address?: string;
+  friendId?: string;
 }
 
 export interface CenterPoint {
@@ -19,3 +20,5 @@ export interface CenterPoint {
 }
 
 export type TravelMode = 'DRIVING' | 'WALKING' | 'TRANSIT';
+
+export type Algorithm = 'geometric_median' | 'minimax';
