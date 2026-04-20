@@ -105,26 +105,26 @@ export function ControlPanel({
         />
       </div>
 
-      {/* Points List */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-foreground">
-            Participants
-          </h2>
-          <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-            {points.length} point{points.length !== 1 ? 's' : ''}
-          </span>
+      {/* Points List + Results & Calculate (scrollable) */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-foreground">
+              Participants
+            </h2>
+            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+              {points.length} point{points.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          <PointsList
+            points={points}
+            centerPoint={centerPoint}
+            onRemovePoint={onRemovePoint}
+          />
         </div>
 
-        <PointsList
-          points={points}
-          centerPoint={centerPoint}
-          onRemovePoint={onRemovePoint}
-        />
-      </div>
-
-      {/* Results & Calculate */}
-      <div className="p-4 border-t border-border space-y-4">
+        <div className="p-4 border-t border-border space-y-4">
         {centerPoint && (
           <CenterResults
             centerPoint={centerPoint}
@@ -226,6 +226,7 @@ export function ControlPanel({
             Add at least 2 points to calculate
           </p>
         )}
+      </div>
       </div>
     </div>
   );

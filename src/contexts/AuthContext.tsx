@@ -44,6 +44,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         fetchProfile(currentSession.user.id);
       }
       setIsLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
     });
 
     // Listen for auth changes
