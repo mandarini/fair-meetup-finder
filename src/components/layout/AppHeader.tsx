@@ -1,7 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { LoginButton } from '@/components/auth/LoginButton';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function AppHeader() {
@@ -14,10 +13,8 @@ export function AppHeader() {
         onClick={() => navigate('/')}
         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
       >
-        <div className="p-1 rounded-lg bg-accent/10">
-          <MapPin className="h-4 w-4 text-accent" />
-        </div>
-        <span className="font-display text-sm font-bold text-foreground">MeetPoint</span>
+        <img src="/fairmeet.png" alt="FairMeet" className="h-7 w-7" />
+        <span className="font-display text-sm font-bold text-foreground">FairMeet</span>
       </button>
 
       <div className="flex items-center gap-2">
